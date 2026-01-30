@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+:root {
+  /* Default Kratos theme - customize these */
+  --face-primary: #3b82f6;
+  --face-secondary: #1e40af;
+  --face-accent: #fbbf24;
+  --face-bg: #0f172a;
+  --face-glow: rgba(59, 130, 246, 0.5);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--face-bg);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Glow animation */
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 20px var(--face-glow)); }
+  50% { filter: drop-shadow(0 0 40px var(--face-glow)); }
+}
+
+@keyframes thinking-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes speaking-wave {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.3); }
+}
+
+@keyframes blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+
+.animate-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-thinking {
+  animation: thinking-pulse 1.5s ease-in-out infinite;
+}
+
+.animate-speaking {
+  animation: speaking-wave 0.3s ease-in-out infinite;
+}
+
+.animate-blink {
+  animation: blink 4s ease-in-out infinite;
+}
