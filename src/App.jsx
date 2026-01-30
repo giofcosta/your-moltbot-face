@@ -9,9 +9,12 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load config on mount
+  // Load config on mount based on environment
   useEffect(() => {
-    fetch('/config.json')
+    const env = import.meta.env.VITE_ENV || 'production';
+    const configFile = env === 'staging' ? '/config.staging.json' : '/config.production.json';
+    
+    fetch(configFile)
       .then(res => res.json())
       .then(data => {
         setConfig(data);
@@ -99,9 +102,12 @@ function App() {
         theme={config?.theme}
       />
 
-      {/* Fullscreen hint */}
-      <div className="absolute bottom-2 right-4 text-xs opacity-30" style={{ color: config?.theme?.text || '#fff' }}>
-        Press F11 for fullscreen
+      {/* Environment badge + Fullscreen hint */}
+      <div className="absolute bottom-2 right-4 flex items-center gap-4 text-xs opacity-30" style={{ color: config?.theme?.text || '#fff' }}>
+        {config?.environment === 'staging' && (
+          <span className="bg-amber-500/20 text-amber-400 px-2 py-1 rounded opacity-100">STAGING</span>
+        )}
+        <span>Press F11 for fullscreen</span>
       </div>
     </div>
   );

@@ -1,13 +1,19 @@
 {
   "name": "moltbot-face",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:staging": "VITE_ENV=staging vite --port 18795",
+    "dev:prod": "VITE_ENV=production vite --port 18794",
+    "start:staging": "VITE_ENV=staging vite --port 18795 --host",
+    "start:prod": "VITE_ENV=production vite --port 18794 --host",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "build:staging": "VITE_ENV=staging vite build --outDir dist/staging",
+    "build:prod": "VITE_ENV=production vite build --outDir dist/production",
+    "preview": "vite preview",
+    "lint": "eslint ."
   },
   "dependencies": {
     "react": "^19.2.0",
