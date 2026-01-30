@@ -160,16 +160,14 @@ export function Face({ state, config, theme }) {
             ))}
           </g>
         ) : (
-          /* Idle - subtle line */
-          <line
-            x1="160"
-            y1="260"
-            x2="240"
-            y2="260"
+          /* Idle - smile! */
+          <path
+            d="M 160 255 Q 200 285 240 255"
+            fill="transparent"
             stroke={faceColor}
             strokeWidth="4"
             strokeLinecap="round"
-            style={{ opacity: isDisconnected ? 0.3 : 0.6 }}
+            style={{ opacity: isDisconnected ? 0.3 : 0.8 }}
           />
         )}
       </g>

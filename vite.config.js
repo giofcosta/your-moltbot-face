@@ -7,5 +7,6 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 18794,
+    allowedHosts: ['organisation-frames-minute-electric.trycloudflare.com', '.trycloudflare.com'],
   },
 })
