@@ -9,7 +9,7 @@ export default defineConfig({
   reporter: 'html',
   
   use: {
-    baseURL: 'http://localhost:18795',
+    baseURL: process.env.CI ? 'http://localhost:4173' : 'http://localhost:18795',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -31,9 +31,9 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npm run preview:staging',
-    url: 'http://localhost:18795',
-    reuseExistingServer: true,
+    command: process.env.CI ? 'npm run preview:ci' : 'npm run preview:staging',
+    url: process.env.CI ? 'http://localhost:4173' : 'http://localhost:18795',
+    reuseExistingServer: !process.env.CI,
     timeout: 30000,
   },
 });
