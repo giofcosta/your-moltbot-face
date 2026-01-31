@@ -1,38 +1,61 @@
 import { useState, useEffect } from 'react';
-import { generateKratosAvatar, DEFAULT_PROMPTS } from '../lib/avatarGenerator';
+import { generateKratosAvatar, DEFAULT_PROMPTS } from './avatarGenerator';
+import { buttonVariants, cn } from '../lib/utils';
 
 const STORAGE_KEY = 'kratos-custom-avatar';
 
-export function AvatarGenerator({ 
-  onAvatarGenerated, 
-  theme,
-  onClose,
-  isOpen 
-}) {
+const styles = [
+  {
+    id: 'kratos',
+    name: 'Kratos',
+    icon: '⚡',
+    description: 'Classic blue & gold lightning theme',
+    gradient: 'from-blue-500 to-amber-500',
+  },
+  {
+    id: 'kratosMinimal',
+    name: 'Minimal',
+    icon: '◆',
+    description: 'Clean geometric design',
+    gradient: 'from-slate-400 to-slate-600',
+  },
+  {
+    id: 'kratosCyberpunk',
+    name: 'Cyberpunk',
+    icon: '⚡',
+    description: 'Neon futuristic aesthetic',
+    gradient: 'from-cyan-500 to-pink-500',
+  },
+  {
+    id: 'kratosAbstract',
+    name: 'Abstract',
+    icon: '◈',
+    description: 'Artistic interpretation',
+    gradient: 'from-violet-500 to-orange-500',
+  },
+];
+
+export function AvatarGenerator({ isOpen, onClose, theme, onAvatarGenerated }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedStyle, setSelectedStyle] = useState('kratos');
   const [history, setHistory] = useState([]);
-  const [activeTab, setActiveTab] = useState('generate'); // 'generate' | 'history'
+  const [activeTab, setActiveTab] = useState('generate');
 
-  // Load history from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}-history`);
     if (saved) {
       try {
         setHistory(JSON.parse(saved));
       } catch (e) {
-        console.error('Failed to load avatar history:', e);
+        console.error('Failed to load history:', e);
       }
     }
   }, []);
 
-  // Save history when it changes
   useEffect(() => {
-    if (history.length > 0) {
-      localStorage.setItem(`${STORAGE_KEY}-history`, JSON.stringify(history));
-    }
+    localStorage.setItem(`${STORAGE_KEY}-history`, JSON.stringify(history));
   }, [history]);
 
   const handleGenerate = async () => {
@@ -48,15 +71,13 @@ export function AvatarGenerator({
 
       if (result.success) {
         setPreviewUrl(result.url);
-        // Add to history
         const newItem = {
           url: result.url,
           style: selectedStyle,
-          prompt: DEFAULT_PROMPTS[selectedStyle],
-          date: new Date().toISOString(),
+          date: Date.now(),
           id: Date.now(),
         };
-        setHistory(prev => [newItem, ...prev].slice(0, 10)); // Keep last 10
+        setHistory((prev) => [newItem, ...prev].slice(0, 12));
       } else {
         setError(result.error);
       }
@@ -67,148 +88,136 @@ export function AvatarGenerator({
     }
   };
 
-  const handleUseAvatar = (url) => {
-    // Save as current avatar
+  const handleUse = (url) => {
     localStorage.setItem(STORAGE_KEY, url);
     onAvatarGenerated?.({ url, useAsFace: true });
-    // Don't close - let user see the face change
   };
 
   const handleDownload = async (url) => {
     try {
-      // Fetch the image as a blob to avoid redirecting
       const response = await fetch(url);
       const blob = await response.blob();
-      
-      // Create object URL from blob
       const blobUrl = URL.createObjectURL(blob);
-      
-      // Trigger download
       const link = document.createElement('a');
       link.href = blobUrl;
       link.download = `kratos-avatar-${Date.now()}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
-      // Clean up object URL
       setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
     } catch (err) {
-      console.error('Download failed:', err);
-      // Fallback: open in new tab
       window.open(url, '_blank');
     }
   };
 
   const handleDelete = (id, e) => {
     e.stopPropagation();
-    setHistory(prev => prev.filter(item => item.id !== id));
-  };
-
-  const styleInfo = {
-    kratos: { name: 'Kratos', icon: '⚡', desc: 'Classic blue & gold' },
-    kratosMinimal: { name: 'Minimal', icon: '◆', desc: 'Clean geometric' },
-    kratosCyberpunk: { name: 'Cyberpunk', icon: '⚡', desc: 'Neon & futuristic' },
-    kratosAbstract: { name: 'Abstract', icon: '◈', desc: 'Artistic interpretation' },
+    setHistory((prev) => prev.filter((item) => item.id !== id));
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
-      <div 
-        className="w-full max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col"
-        style={{ 
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div
+        className="w-full max-w-5xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl"
+        style={{
           background: theme?.background || '#0f172a',
-          border: `1px solid ${theme?.primary || '#3b82f6'}40`,
-          boxShadow: `0 0 60px ${theme?.primary || '#3b82f6'}20`,
+          border: `1px solid ${theme?.primary || '#3b82f6'}30`,
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">⚡</span>
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
+              style={{ background: `${theme?.primary || '#3b82f6'}20` }}
+            >
+              ⚡
+            </div>
             <div>
-              <h2 className="text-xl font-bold" style={{ color: theme?.text || '#fff' }}>
-                Avatar Studio
-              </h2>
-              <p className="text-sm opacity-60" style={{ color: theme?.text || '#fff' }}>
-                Generate and manage your Kratos avatars
-              </p>
+              <h2 className="text-lg font-bold text-white">Avatar Studio</h2>
+              <p className="text-sm text-white/50">Generate your Kratos avatar</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-            style={{ color: theme?.text || '#fff' }}
+            className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'text-white/70 hover:text-white')}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            ✕
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-white/10">
-          <button
-            onClick={() => setActiveTab('generate')}
-            className={`flex-1 py-3 text-sm font-medium transition-all ${
-              activeTab === 'generate' ? 'border-b-2' : 'opacity-60'
-            }`}
-            style={{ 
-              color: theme?.text || '#fff',
-              borderColor: activeTab === 'generate' ? theme?.primary || '#3b82f6' : 'transparent',
-            }}
-          >
-            Generate New
-          </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`flex-1 py-3 text-sm font-medium transition-all ${
-              activeTab === 'history' ? 'border-b-2' : 'opacity-60'
-            }`}
-            style={{ 
-              color: theme?.text || '#fff',
-              borderColor: activeTab === 'history' ? theme?.primary || '#3b82f6' : 'transparent',
-            }}
-          >
-            History ({history.length})
-          </button>
+        <div className="flex px-6 border-b border-white/10">
+          {['generate', 'history'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                'px-4 py-3 text-sm font-medium capitalize transition-colors relative',
+                activeTab === tab ? 'text-white' : 'text-white/50 hover:text-white/80'
+              )}
+            >
+              {tab}
+              {tab === 'history' && history.length > 0 && (
+                <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-white/10">
+                  {history.length}
+                </span>
+              )}
+              {activeTab === tab && (
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-0.5"
+                  style={{ background: theme?.primary || '#3b82f6' }}
+                />
+              )}
+            </button>
+          ))}
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {activeTab === 'generate' ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left: Style Selection */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Style Selection */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold uppercase tracking-wider opacity-60" style={{ color: theme?.text || '#fff' }}>
+                <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider">
                   Choose Style
                 </h3>
-                <div className="grid grid-cols-1 gap-3">
-                  {Object.entries(styleInfo).map(([key, info]) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {styles.map((style) => (
                     <button
-                      key={key}
-                      onClick={() => setSelectedStyle(key)}
-                      className={`flex items-center gap-4 p-4 rounded-xl border transition-all text-left ${
-                        selectedStyle === key 
-                          ? 'border-2' 
-                          : 'border-white/10 hover:border-white/20'
-                      }`}
+                      key={style.id}
+                      onClick={() => setSelectedStyle(style.id)}
+                      className={cn(
+                        'relative p-4 rounded-xl border-2 text-left transition-all group',
+                        selectedStyle === style.id
+                          ? 'border-primary bg-primary/10'
+                          : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
+                      )}
                       style={{
-                        borderColor: selectedStyle === key ? theme?.primary || '#3b82f6' : undefined,
-                        background: selectedStyle === key ? `${theme?.primary || '#3b82f6'}10` : 'transparent',
+                        borderColor: selectedStyle === style.id ? theme?.primary : undefined,
                       }}
                     >
-                      <span className="text-2xl">{info.icon}</span>
-                      <div>
-                        <div className="font-semibold" style={{ color: theme?.text || '#fff' }}>
-                          {info.name}
-                        </div>
-                        <div className="text-sm opacity-60" style={{ color: theme?.text || '#fff' }}>
-                          {info.desc}
+                      <div
+                        className={cn(
+                          'absolute inset-0 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity bg-gradient-to-br',
+                          style.gradient
+                        )}
+                      />
+                      <div className="relative flex items-start gap-3">
+                        <span className="text-2xl">{style.icon}</span>
+                        <div>
+                          <div className="font-semibold text-white">{style.name}</div>
+                          <div className="text-sm text-white/50">{style.description}</div>
                         </div>
                       </div>
+                      {selectedStyle === style.id && (
+                        <div
+                          className="absolute top-2 right-2 w-2 h-2 rounded-full"
+                          style={{ background: theme?.primary }}
+                        />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -216,17 +225,30 @@ export function AvatarGenerator({
                 <button
                   onClick={handleGenerate}
                   disabled={loading}
-                  className="w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                  style={{ 
-                    background: loading ? 'transparent' : `linear-gradient(135deg, ${theme?.primary || '#3b82f6'}, ${theme?.secondary || '#1e40af'})`,
-                    color: '#fff',
-                  }}
+                  className={cn(
+                    buttonVariants({ size: 'lg' }),
+                    'w-full mt-4',
+                    loading && 'opacity-70 cursor-not-allowed'
+                  )}
+                  style={{ background: theme?.primary }}
                 >
                   {loading ? (
                     <>
                       <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
                       </svg>
                       Generating...
                     </>
@@ -236,106 +258,94 @@ export function AvatarGenerator({
                 </button>
 
                 {error && (
-                  <div className="p-4 rounded-lg bg-red-500/20 text-red-400 text-sm">
+                  <div className="p-4 rounded-lg bg-red-500/20 text-red-400 text-sm border border-red-500/30">
                     {error}
                   </div>
                 )}
               </div>
 
-              {/* Right: Preview */}
-              <div className="flex flex-col items-center justify-center min-h-[300px]">
-                {previewUrl ? (
-                  <div className="w-full space-y-4">
-                    <div 
-                      className="relative aspect-square rounded-2xl overflow-hidden"
-                      style={{ boxShadow: `0 0 40px ${theme?.primary || '#3b82f6'}40` }}
-                    >
-                      <img
-                        src={previewUrl}
-                        alt="Generated Avatar"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => handleUseAvatar(previewUrl)}
-                        className="flex-1 py-3 px-4 rounded-lg font-semibold"
-                        style={{ 
-                          background: theme?.primary || '#3b82f6',
-                          color: '#fff',
-                        }}
+              {/* Preview */}
+              <div className="flex flex-col">
+                <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider mb-4">
+                  Preview
+                </h3>
+                <div className="flex-1 flex items-center justify-center min-h-[300px] rounded-xl bg-white/5 border border-white/10 p-8">
+                  {previewUrl ? (
+                    <div className="w-full max-w-sm space-y-4">
+                      <div
+                        className="aspect-square rounded-2xl overflow-hidden ring-2 ring-offset-4 ring-offset-[#0f172a]"
+                        style={{ ringColor: theme?.primary }}
                       >
-                        Use as Face
-                      </button>
-                      <button
-                        onClick={() => handleDownload(previewUrl)}
-                        className="flex-1 py-3 px-4 rounded-lg font-semibold"
-                        style={{ 
-                          background: theme?.accent || '#fbbf24',
-                          color: '#000',
-                        }}
-                      >
-                        Download
-                      </button>
+                        <img
+                          src={previewUrl}
+                          alt="Generated"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => handleUse(previewUrl)}
+                          className={cn(buttonVariants(), 'flex-1')}
+                          style={{ background: theme?.primary }}
+                        >
+                          Use as Face
+                        </button>
+                        <button
+                          onClick={() => handleDownload(previewUrl)}
+                          className={cn(buttonVariants({ variant: 'outline' }), 'flex-1')}
+                        >
+                          Download
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center opacity-40" style={{ color: theme?.text || '#fff' }}>
-                    <svg className="w-20 h-20 mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                    </svg>
-                    <p>Select a style and click Generate</p>
-                  </div>
-                )}
+                  ) : (
+                    <div className="text-center text-white/30">
+                      <div className="text-6xl mb-4">🎨</div>
+                      <p>Select a style and generate</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ) : (
-            /* History Tab */
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {history.length === 0 ? (
-                <div className="col-span-full text-center py-12 opacity-40" style={{ color: theme?.text || '#fff' }}>
-                  No avatars generated yet
+                <div className="col-span-full text-center py-16 text-white/40">
+                  <div className="text-5xl mb-4">📷</div>
+                  <p>No avatars yet. Generate your first!</p>
                 </div>
               ) : (
                 history.map((item) => (
-                  <div 
+                  <div
                     key={item.id}
-                    className="group relative aspect-square rounded-xl overflow-hidden cursor-pointer border border-white/10 hover:border-white/30 transition-all"
-                    onClick={() => handleUseAvatar(item.url)}
+                    className="group relative aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10 hover:border-white/30 transition-all cursor-pointer"
                   >
                     <img
                       src={item.url}
                       alt="Avatar"
                       className="w-full h-full object-cover transition-transform group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleUseAvatar(item.url); }}
-                        className="px-3 py-1.5 rounded-lg text-sm font-medium"
-                        style={{ background: theme?.primary || '#3b82f6', color: '#fff' }}
+                        onClick={() => handleUse(item.url)}
+                        className={cn(buttonVariants({ size: 'sm' }), 'w-full text-xs')}
+                        style={{ background: theme?.primary }}
                       >
                         Use
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleDownload(item.url); }}
-                        className="px-3 py-1.5 rounded-lg text-sm font-medium"
-                        style={{ background: theme?.accent || '#fbbf24', color: '#000' }}
+                        onClick={() => handleDownload(item.url)}
+                        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'w-full text-xs')}
                       >
                         Download
                       </button>
-                      <button
-                        onClick={(e) => handleDelete(item.id, e)}
-                        className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
                     </div>
-                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                      <p className="text-xs text-white/80 truncate">{styleInfo[item.style]?.name || item.style}</p>
-                      <p className="text-xs text-white/50">{new Date(item.date).toLocaleDateString()}</p>
-                    </div>
+                    <button
+                      onClick={(e) => handleDelete(item.id, e)}
+                      className="absolute top-1 right-1 p-1.5 rounded-lg bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ✕
+                    </button>
                   </div>
                 ))
               )}
@@ -344,17 +354,14 @@ export function AvatarGenerator({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/10 text-center">
-          <p className="text-xs opacity-50" style={{ color: theme?.text || '#fff' }}>
-            Powered by Pollinations.ai • Free unlimited generation
-          </p>
+        <div className="px-6 py-3 border-t border-white/10 text-center text-xs text-white/40">
+          Powered by Pollinations.ai • Free unlimited generation
         </div>
       </div>
     </div>
   );
 }
 
-// Helper to load saved avatar on app start
 export function loadSavedAvatar() {
   return localStorage.getItem(STORAGE_KEY);
 }
