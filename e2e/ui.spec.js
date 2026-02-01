@@ -156,6 +156,12 @@ test.describe('Avatar Generator Modal', () => {
     await expect(useButton).not.toBeVisible();
   });
 
+  test('use CSS face button only shows when custom avatar is set', async ({ page }) => {
+    // Initially, "Use CSS Face" button should NOT be visible (no custom avatar)
+    const cssButton = page.locator('button:has-text("Use CSS Face")');
+    await expect(cssButton).not.toBeVisible();
+  });
+
   test('takes visual screenshot for review', async ({ page }, testInfo) => {
     // Take screenshot for visual review
     await page.screenshot({ 

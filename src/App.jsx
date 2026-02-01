@@ -132,11 +132,15 @@ function App() {
         isOpen={showAvatarGenerator}
         onClose={() => setShowAvatarGenerator(false)}
         theme={config?.theme}
+        hasCustomAvatar={!!customAvatar}
         onAvatarGenerated={(result) => {
           console.log('Avatar generated:', result);
           if (result?.useAsFace) {
             setCustomAvatar(result.url);
           }
+        }}
+        onResetToDefault={() => {
+          setCustomAvatar(null);
         }}
       />
     </div>
