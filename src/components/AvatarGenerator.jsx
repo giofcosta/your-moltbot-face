@@ -36,7 +36,7 @@ const styles = [
   },
 ];
 
-export function AvatarGenerator({ isOpen, onClose, theme, onAvatarGenerated }) {
+export function AvatarGenerator({ isOpen, onClose, theme, onAvatarGenerated, onResetToDefault, hasCustomAvatar }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -44,6 +44,12 @@ export function AvatarGenerator({ isOpen, onClose, theme, onAvatarGenerated }) {
   const [history, setHistory] = useState([]);
   const [activeTab, setActiveTab] = useState('generate');
   const { toast, showToast, hideToast } = useToast();
+
+  const handleResetToDefault = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    onResetToDefault?.();
+    showToast('Switched to CSS face!', 'success');
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}-history`);
@@ -144,12 +150,22 @@ export function AvatarGenerator({ isOpen, onClose, theme, onAvatarGenerated }) {
               <p className="text-sm text-white/50">Generate your Kratos avatar</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'text-white/70 hover:text-white')}
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-2">
+            {hasCustomAvatar && (
+              <button
+                onClick={handleResetToDefault}
+                className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'text-white/70 hover:text-white')}
+              >
+                Use CSS Face
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'text-white/70 hover:text-white')}
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
