@@ -90,6 +90,11 @@ export function AvatarGenerator({ isOpen, onClose, theme, onAvatarGenerated, onR
           id: Date.now(),
         };
         setHistory((prev) => [newItem, ...prev].slice(0, 12));
+        
+        // Show warning if placeholder was used
+        if (result.warning) {
+          showToast(result.warning, 'warning');
+        }
       } else {
         setError(result.error);
         setImageLoading(false);
