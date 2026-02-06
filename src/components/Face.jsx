@@ -26,6 +26,13 @@ export function Face({ state, config, theme, customAvatar }) {
 
   const eyeStyle = config?.face?.eyeShape || 'angular';
 
+  // Breathing animation speed based on state (must be before early return)
+  const breathingSpeed = useMemo(() => {
+    if (isThinking || isSpeaking) return '0.8s'; // Fast when active
+    if (state === STATES.LISTENING) return '2s'; // Medium when listening
+    return '4s'; // Slow when idle
+  }, [isThinking, isSpeaking, state]);
+
   // If custom avatar is provided, show it instead of SVG
   if (customAvatar) {
     return (
@@ -64,13 +71,6 @@ export function Face({ state, config, theme, customAvatar }) {
       </div>
     );
   }
-
-  // Breathing animation speed based on state
-  const breathingSpeed = useMemo(() => {
-    if (isThinking || isSpeaking) return '0.8s'; // Fast when active
-    if (state === STATES.LISTENING) return '2s'; // Medium when listening
-    return '4s'; // Slow when idle
-  }, [isThinking, isSpeaking, state]);
 
   // Dynamic styles based on state
   const faceColor = useMemo(() => {
